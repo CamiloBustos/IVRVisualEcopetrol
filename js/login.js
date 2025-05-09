@@ -1,22 +1,49 @@
-function mostrarAlertaPersonalizada() {
-  document.getElementById('alerta-personalizada').style.display = 'flex';
-}
+async function validarCredenciales(event) {
+  event.preventDefault();
 
-function cerrarAlerta() {
-  document.getElementById('alerta-personalizada').style.display = 'none';
-}
+  const emailUsuario = document.getElementById('email').value.trim();
+  console.log('Correo ingresado:', emailUsuario);
 
-function validarCredenciales(event) {
-  event.preventDefault(); // Evita que se recargue la página
+  try {
+    const tokenUrl = `http://172.16.150.38:5252/EcoIvrVisual/api/mtdGenerarToken?Email=ivr_visual@atento.com&password=4Dm1n3c02026`;
 
-  const email = document.getElementById('email').value.trim();
+    const tokenResponse = await fetch(tokenUrl);
+    if (!tokenResponse.ok) throw new Error('Error al obtener el token');
 
-  // Validar el correo ingresado
-  if (email === 'ecopetrol@atento.com1') {
-    window.location.href = 'templates/grupo_poblacional/activo.html';
-  } else if (email === 'ecopetrol@atento.com2') {
-    window.location.href = 'templates/grupo_poblacional/pensionado.html';
-  } else {
+    const tokenData = await tokenResponse.json();
+    const token = tokenData.token;
+    console.log('TOKEN:', token);
+
+    const callId = '123423';
+    const loginUrl = `http://172.16.150.38:5252/EcoIvrVisual/api/mtdGestion/Login?Callid=${callId}&Email=${encodeURIComponent(emailUsuario)}`;
+
+    const loginResponse = await fetch(loginUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!loginResponse.ok) throw new Error('Error al validar el usuario');
+
+    const loginData = await loginResponse.json();
+    console.log('LOGIN DATA:', loginData);
+
+    if (!loginData.existeCliente) {
+      mostrarAlertaPersonalizada();
+    } else {
+      const tipo = loginData.tipoCliente?.toLowerCase();
+      console.log('TIPO DE CLIENTE:', tipo);
+
+      if (tipo === 'pensionado') {
+        window.location.href = 'templates/grupo_poblacional/pensionado.html';
+      } else {
+        window.location.href = 'templates/grupo_poblacional/activo.html';
+      }
+    }
+
+  } catch (error) {
+    console.error('Error durante la validación:', error);
     mostrarAlertaPersonalizada();
   }
 }

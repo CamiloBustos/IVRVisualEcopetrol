@@ -1,3 +1,17 @@
+
+function mostrarAlertaPersonalizada() {
+  const alerta = document.getElementById('alerta-personalizada');
+  if (alerta) {
+    alerta.style.display = 'flex';
+  }
+}
+
+function cerrarAlerta() {
+  const alerta = document.getElementById('alerta-personalizada');
+  if (alerta) {
+    alerta.style.display = 'none';
+  }
+}
 async function validarCredenciales(event) {
   event.preventDefault();
 
